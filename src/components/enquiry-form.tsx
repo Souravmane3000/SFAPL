@@ -3,24 +3,10 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, LoaderCircle, Mail } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { Controller, useForm } from "react-hook-form";
 import { company } from "@/data/company";
 import { publishedProducts } from "@/data/products";
-
-const enquirySchema = z.object({
-  name: z.string().trim().min(2, "Please enter your name."),
-  company: z.string().trim().optional(),
-  email: z.string().trim().email("Enter a valid email address."),
-  phone: z.string().trim().min(7, "Enter a valid phone number."),
-  country: z.string().trim().optional(),
-  productInterest: z.string().min(1, "Select a product or enquiry type."),
-  approximateQuantity: z.string().trim().optional(),
-  message: z.string().trim().max(500, "Keep the message under 500 characters.").optional(),
-  website: z.string().max(0, "Unable to submit."),
-});
-
-type FormValues = z.infer<typeof enquirySchema>;
+import { enquiryDeliveryStatus, enquirySchema, type EnquiryValues } from "@/lib/enquiry";
 
 const inputClass =
   "focus-ring min-h-12 w-full rounded-lg border border-stone-300 bg-white px-4 text-stone-900 placeholder:text-stone-400";
@@ -37,13 +23,14 @@ export function EnquiryForm({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  } = useForm<EnquiryValues>({
     resolver: zodResolver(enquirySchema),
     defaultValues: { productInterest: defaultProduct, website: "" },
   });
 
-  async function onSubmit(data: FormValues) {
+  async function onSubmit(data: EnquiryValues) {
     setStatus("idle");
 
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
@@ -51,7 +38,7 @@ export function EnquiryForm({
     const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
     if (!serviceId || !templateId || !publicKey) {
-      setStatus("error");
+      setStatus(enquiryDeliveryStatus(false, false));
       return;
     }
 
@@ -72,10 +59,10 @@ export function EnquiryForm({
         },
         { publicKey },
       );
-      setStatus("success");
+      setStatus(enquiryDeliveryStatus(true, true));
       reset({ productInterest: defaultProduct, website: "" });
     } catch {
-      setStatus("error");
+      setStatus(enquiryDeliveryStatus(true, false));
     }
   }
 
@@ -86,35 +73,37 @@ export function EnquiryForm({
         <input id="website" tabIndex={-1} autoComplete="off" {...register("website")} />
       </div>
       <div className={`grid gap-5 ${compact ? "" : "md:grid-cols-2"}`}>
-        <Field label="Full name" error={errors.name?.message} required>
-          <input className={inputClass} autoComplete="name" {...register("name")} aria-invalid={Boolean(errors.name)} />
+        <Field id="enquiry-name" label="Full name" error={errors.name?.message} required>
+          <input id="enquiry-name" className={inputClass} autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "enquiry-name-error" : undefined} {...register("name")} />
         </Field>
-        <Field label="Company / organisation" error={errors.company?.message}>
-          <input className={inputClass} autoComplete="organization" {...register("company")} />
+        <Field id="enquiry-company" label="Company / organisation" error={errors.company?.message}>
+          <input id="enquiry-company" className={inputClass} autoComplete="organization" aria-describedby={errors.company ? "enquiry-company-error" : undefined} {...register("company")} />
         </Field>
-        <Field label="Email address" error={errors.email?.message} required>
-          <input className={inputClass} type="email" autoComplete="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
+        <Field id="enquiry-email" label="Email address" error={errors.email?.message} required>
+          <input id="enquiry-email" className={inputClass} type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "enquiry-email-error" : undefined} {...register("email")} />
         </Field>
-        <Field label="Phone number" error={errors.phone?.message} required>
-          <input className={inputClass} type="tel" autoComplete="tel" {...register("phone")} aria-invalid={Boolean(errors.phone)} />
+        <Field id="enquiry-phone" label="Phone number" error={errors.phone?.message} required>
+          <input id="enquiry-phone" className={inputClass} type="tel" autoComplete="tel" aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "enquiry-phone-error" : undefined} {...register("phone")} />
         </Field>
-        <Field label="Country / location" error={errors.country?.message}>
-          <input className={inputClass} autoComplete="country-name" {...register("country")} />
+        <Field id="enquiry-country" label="Country / location" error={errors.country?.message}>
+          <input id="enquiry-country" className={inputClass} autoComplete="country-name" aria-describedby={errors.country ? "enquiry-country-error" : undefined} {...register("country")} />
         </Field>
-        <Field label="Product of interest" error={errors.productInterest?.message} required>
-          <select className={inputClass} {...register("productInterest")} aria-invalid={Boolean(errors.productInterest)}>
+        <Field id="enquiry-product" label="Product of interest" error={errors.productInterest?.message} required>
+          <Controller name="productInterest" control={control} render={({ field }) => (
+            <select id="enquiry-product" className={inputClass} aria-invalid={Boolean(errors.productInterest)} aria-describedby={errors.productInterest ? "enquiry-product-error" : undefined} {...field}>
             <option value="">Select an option</option>
             {publishedProducts.map((product) => <option key={product.id} value={product.name}>{product.name}</option>)}
             <option value="Wholesale partnership">Wholesale partnership</option>
             <option value="Distribution enquiry">Distribution enquiry</option>
           </select>
+          )} />
         </Field>
       </div>
-      <Field label="Approximate quantity" error={errors.approximateQuantity?.message}>
-        <input className={inputClass} placeholder="For example: 500 kg" {...register("approximateQuantity")} />
+      <Field id="enquiry-quantity" label="Approximate quantity" error={errors.approximateQuantity?.message}>
+        <input id="enquiry-quantity" className={inputClass} placeholder="For example: 500 kg" aria-describedby={errors.approximateQuantity ? "enquiry-quantity-error" : undefined} {...register("approximateQuantity")} />
       </Field>
-      <Field label="Message" error={errors.message?.message}>
-        <textarea className={`${inputClass} min-h-32 py-3`} rows={4} {...register("message")} />
+      <Field id="enquiry-message" label="Message" error={errors.message?.message}>
+        <textarea id="enquiry-message" className={`${inputClass} min-h-32 py-3`} rows={4} aria-describedby={errors.message ? "enquiry-message-error" : undefined} {...register("message")} />
       </Field>
       <button
         type="submit"
@@ -124,40 +113,44 @@ export function EnquiryForm({
         {isSubmitting ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Mail className="size-4" aria-hidden="true" />}
         {isSubmitting ? "Sending…" : "Send enquiry"}
       </button>
-      {status === "success" ? (
-        <p className="flex items-center gap-2 rounded-lg bg-forest-50 p-4 text-sm font-semibold text-success" role="status">
-          <CheckCircle2 className="size-5" aria-hidden="true" />
-          Your enquiry was accepted for delivery. We will review it shortly.
-        </p>
-      ) : null}
-      {status === "error" ? (
-        <p className="rounded-lg bg-red-50 p-4 text-sm text-error" role="alert">
-          We could not send this enquiry. Email us directly at{" "}
-          <a className="font-bold underline" href={`mailto:${company.contact.primaryEmail}`}>{company.contact.primaryEmail}</a>.
-        </p>
-      ) : null}
+      <div role="status" aria-live="polite">
+        {status === "success" ? (
+          <p className="flex items-center gap-2 rounded-lg bg-forest-50 p-4 text-sm font-semibold text-success">
+            <CheckCircle2 className="size-5" aria-hidden="true" />
+            Your enquiry was accepted for delivery. We will review it shortly.
+          </p>
+        ) : null}
+        {status === "error" ? (
+          <p className="rounded-lg bg-red-50 p-4 text-sm text-error">
+            We could not send this enquiry. Email us directly at{" "}
+            <a className="font-bold underline" href={`mailto:${company.contact.primaryEmail}`}>{company.contact.primaryEmail}</a>.
+          </p>
+        ) : null}
+      </div>
     </form>
   );
 }
 
 function Field({
+  id,
   label,
   error,
   required,
   children,
 }: {
+  id: string;
   label: string;
   error?: string | undefined;
   required?: boolean | undefined;
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-bold text-stone-800">
+    <div>
+      <label htmlFor={id} className="mb-2 block text-sm font-bold text-stone-800">
         {label}{required ? <span className="text-error"> *</span> : null}
-      </span>
+      </label>
       {children}
-      {error ? <span className="mt-2 block text-sm text-error" role="alert">{error}</span> : null}
-    </label>
+      {error ? <p id={`${id}-error`} className="mt-2 text-sm text-error">{error}</p> : null}
+    </div>
   );
 }

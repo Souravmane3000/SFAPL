@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Check } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ButtonLink, ProductCard } from "@/components/content-components";
 import { EnquiryForm } from "@/components/enquiry-form";
+import { ProductGallery } from "@/components/product-gallery";
 import { company } from "@/data/company";
-import { getProductBySlug, getPublishedVariants, publishedProducts } from "@/data/products";
+import { getProductBySlug, publishedProducts } from "@/data/products";
+import { publishedGallery } from "@/lib/gallery";
 
 export function generateStaticParams() {
   return publishedProducts.map((product) => ({ slug: product.slug }));
@@ -30,7 +31,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = getProductBySlug(slug);
   if (!product) notFound();
 
-  const variants = getPublishedVariants(product);
+  const gallery = publishedGallery(product);
   const related = publishedProducts.filter((item) => item.id !== product.id).slice(0, 3);
   const productSchema = {
     "@context": "https://schema.org",
@@ -56,8 +57,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <div className="mt-9"><ButtonLink href="#product-enquiry">Request a quote</ButtonLink></div>
             </div>
           </div>
-          <div className="relative min-h-[25rem] lg:min-h-full">
-            <Image src={product.heroImage} alt={`${product.name} product presentation`} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+          <div className="relative min-h-[25rem] p-6 lg:min-h-full lg:p-10">
+            <ProductGallery images={gallery} label={product.slug} />
           </div>
         </div>
       </section>
@@ -68,25 +69,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <p className="eyebrow">Product overview</p>
             <h2 className="section-title mt-5">Clear information for a confident enquiry.</h2>
             <p className="body-large mt-7 max-w-3xl">{product.longDescription}</p>
-            {variants.length ? (
-              <div className="mt-12">
-                <h3 className="font-sans text-xl font-bold">Published varieties</h3>
-                <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                  {variants.map((variant) => (
-                    <article key={variant.id} className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
-                      {variant.image ? (
-                        <div className="relative aspect-[4/3]">
-                          <Image src={variant.image} alt={variant.label} fill sizes="(max-width: 640px) 100vw, 40vw" className="object-cover" />
-                        </div>
-                      ) : null}
-                      <p className="p-5 font-bold text-stone-900">{variant.label}</p>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            ) : null}
           </div>
-          <aside className="h-fit rounded-2xl bg-forest-50 p-7 md:p-9">
+          <aside className="h-fit rounded-[2rem] bg-forest-50 p-7 md:p-9 lg:sticky lg:top-28">
             <h2 className="font-sans text-xl font-bold">Common business requirements</h2>
             <ul className="mt-6 space-y-4">
               {product.applications.map((application) => (

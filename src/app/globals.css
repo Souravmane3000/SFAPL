@@ -68,10 +68,22 @@ html {
 
 body {
   margin: 0;
-  background: var(--background);
+  background:
+    radial-gradient(circle at 0 0, rgb(214 234 225 / 0.45), transparent 32rem),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-manrope), system-ui, sans-serif;
   text-rendering: optimizeLegibility;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  content: "";
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
 }
 
 h1,
@@ -140,6 +152,41 @@ textarea {
 .focus-ring:focus-visible {
   outline: 2px solid #7fb89e;
   outline-offset: 4px;
+}
+
+.contour-field {
+  background-image:
+    radial-gradient(circle at 20% 20%, transparent 0 18%, rgb(26 61 43 / 0.08) 19% 20%, transparent 21%),
+    radial-gradient(circle at 70% 75%, transparent 0 24%, rgb(196 121 10 / 0.14) 25% 26%, transparent 27%),
+    linear-gradient(115deg, transparent 0 46%, rgb(26 61 43 / 0.05) 46.5% 47%, transparent 47.5%);
+}
+
+.photo-scrim {
+  background:
+    linear-gradient(180deg, rgb(12 31 22 / 0.35), transparent 18% 70%, rgb(12 31 22 / 0.4)),
+    linear-gradient(90deg, rgb(12 31 22 / 0.55) 0%, rgb(12 31 22 / 0.18) 48%, transparent 100%);
+}
+
+.editorial-grid {
+  display: grid;
+  align-items: center;
+  gap: clamp(2rem, 6vw, 6rem);
+}
+
+.media-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: #e7e5e4;
+}
+
+.media-frame img {
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.interactive-media:hover img,
+.interactive-media:focus-visible img {
+  transform: scale(1.045);
 }
 
 @media (max-width: 640px) {

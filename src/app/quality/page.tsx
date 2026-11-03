@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ButtonLink, PageHero, QualityProcess, SectionHeading } from "@/components/content-components";
+import { ButtonLink, PageHero, SectionHeading } from "@/components/content-components";
+import { QualityJourney } from "@/components/quality-journey";
 import { publishedCertifications, qualitySteps } from "@/data/quality";
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export default function QualityPage() {
             title="Five stages of attention."
             copy="The process below reflects the company’s official quality-assurance information without adding unsupported standards or claims."
           />
-          <QualityProcess steps={qualitySteps} />
+          <QualityJourney steps={qualitySteps} />
         </div>
       </section>
       <section className="section-space bg-forest-50">

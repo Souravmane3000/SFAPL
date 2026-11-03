@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 import { company } from "@/data/company";
+import { MotionProvider, ScrollProgress } from "@/components/motion/primitives";
 import { Footer, Header } from "@/components/site-shell";
 import "./globals.css";
 
@@ -50,9 +51,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
       <body>
-        <Header />
-        <main id="main-content">{children}</main>
-        <Footer />
+        <MotionProvider>
+          <ScrollProgress />
+          <Header />
+          <main id="main-content">{children}</main>
+          <Footer />
+        </MotionProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema).replace(/</g, "\\u003c") }}

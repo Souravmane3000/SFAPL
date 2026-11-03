@@ -20,7 +20,7 @@ export default function ContactPage() {
       />
       <section className="section-space">
         <div className="container-shell grid gap-12 lg:grid-cols-[.7fr_1.3fr]">
-          <aside>
+          <aside className="lg:sticky lg:top-28 lg:self-start">
             <p className="eyebrow">Direct contact</p>
             <h2 className="section-title mt-5">Start the conversation.</h2>
             <div className="mt-9 space-y-4">
